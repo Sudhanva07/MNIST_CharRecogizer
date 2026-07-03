@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>MNIST Digit Recognition</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#f2f2f2;
+            text-align:center;
+            margin-top:30px;
+        }
+
+        h1{
+            margin-bottom:20px;
+        }
+
+        canvas{
+            border:3px solid #000;
+            background:black;
+            cursor:crosshair;
+        }
+
+        button{
+
+            margin:15px;
+            padding:12px 30px;
+            font-size:18px;
+            cursor:pointer;
+        }
+
+        #prediction{
+
+            margin-top:20px;
+            font-size:35px;
+            color:green;
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>MNIST Digit Recognition</h1>
+
+<canvas id="canvas" width="280" height="280"></canvas>
+
+<br>
+
+<button onclick="predict()">Predict</button>
+
+<button onclick="clearCanvas()">Clear</button>
+
+<div id="prediction"></div>
+
+<script>
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// Black background
+ctx.fillStyle="black";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+// White pen
+ctx.strokeStyle="white";
+ctx.lineWidth=20;
+ctx.lineCap="round";
+
+let drawing=false;
+
+canvas.addEventListener("mousedown",start);
+canvas.addEventListener("mouseup",stop);
+canvas.addEventListener("mouseleave",stop);
+canvas.addEventListener("mousemove",draw);
+
+// Touch support
+canvas.addEventListener("touchstart",touchStart);
+canvas.addEventListener("touchmove",touchMove);
+canvas.addEventListener("touchend",stop);
+
+function start(e){
+
+    drawing=true;
+
+    ctx.beginPath();
+
+    draw(e);
+}
+
+function stop(){
+
+    drawing=false;
+
+    ctx.beginPath();
+}
+
+function draw(e){
+
+    if(!drawing) return;
+
+    const rect=canvas.getBoundingClientRect();
+
+    const x=e.clientX-rect.left;
+    const y=e.clientY-rect.top;
+
+    ctx.lineTo(x,y);
+
+    ctx.stroke();
+
+    ctx.beginPath();
+
+    ctx.moveTo(x,y);
+}
+
+function touchStart(e){
+
+    e.preventDefault();
+
+    start(e.touches[0]);
+}
+
+function touchMove(e){
+
+    e.preventDefault();
+
+    draw(e.touches[0]);
+}
+
+function clearCanvas(){
+
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    document.getElementById("prediction").innerHTML="";
+}
+
+function predict(){
+
+    // Resize to 28x28
+    const smallCanvas=document.createElement("canvas");
+
+    smallCanvas.width=28;
+    smallCanvas.height=28;
+
+    const smallCtx=smallCanvas.getContext("2d");
+
+    smallCtx.drawImage(canvas,0,0,28,28);
+
+    const imageData=smallCtx.getImageData(0,0,28,28).data;
+
+    let pixels=[];
+
+    for(let i=0;i<imageData.length;i+=4){
+
+        pixels.push(imageData[i]);
+
+
+    }
+
+    fetch("/predict",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            pixels:pixels
+        })
+
+    })
+
+    .then(response=>response.json())
+
+    .then(data=>{
+
+        if(data.error){
+
+            alert(data.error);
+
+            return;
+        }
+
+        document.getElementById("prediction").innerHTML=
+            "Prediction : " + data.prediction;
+
+    })
+
+    .catch(error=>{
+
+        console.log(error);
+
+        alert("Prediction failed.");
+
+    });
+
+}
+
+</script>
+
+</body>
+
+</html>
