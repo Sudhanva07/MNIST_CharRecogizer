@@ -46,10 +46,10 @@ jobs:
                     key:      ${{ secrets.EC2_SSH_KEY }}
                     script: |
                         docker pull ${{ secrets.DOCKER_USERNAME }}/mnist-app:latest
-                        docker stop mnist-app || true
-                        docker rm   mnist-app || true
+                        docker stop ${{ secrets.DOCKER_USERNAME }}/mnist-app || true
+                        docker rm   ${{ secrets.DOCKER_USERNAME }}/mnist-app || true
                         docker run -d \
-                            --name mnist-app \
+                            --name ${{ secrets.DOCKER_USERNAME }}/mnist-app \
                             --restart unless-stopped \
                             -p 80:5000 \
                             ${{ secrets.DOCKER_USERNAME }}/mnist-app:latest
