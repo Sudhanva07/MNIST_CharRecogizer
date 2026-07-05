@@ -1,13 +1,12 @@
-name: CI/CD for Dockerized Flask App
+name: MNIST_CICD
 
 on:
     push:
-        branches: [ main ]
+        branches:
+            - main
 
-jobs:
-    
+jobs:    
     build-and-publish:
-        needs: build-and-test
         runs-on: ubuntu-latest
 
         steps:
