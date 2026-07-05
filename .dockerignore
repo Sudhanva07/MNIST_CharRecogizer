@@ -48,3 +48,4 @@ notebooks/
 *.ipynb
 
 inputs/
+*.pkl
