@@ -1,32 +1,37 @@
-import pandas as pd
-import numpy as np
+import os
 import pickle
-from flask import Flask, request, jsonify,render_template
+import boto3
+import numpy as np
+from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
-with open("model.pkl", "rb") as file:
-    model = pickle.load(file)
+# Load model from S3
+s3 = boto3.client("s3",region_name="ap-southeast-2")
+s3.download_file(
+    "mnist-model-storage-024757002421-ap-southeast-2-an",
+    "model.pkl",
+    "/tmp/model.pkl"
+)
+with open("/tmp/model.pkl", "rb") as f:
+    model = pickle.load(f)
+
+print("Model loaded.")
 
 @app.route('/')
 def home():
-    return render_template('home.html', k=5, train_size=60000)
+    return render_template('home.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    body=request.get_json(force=True)
+    body = request.get_json(force=True)
     pixels = np.array(body['pixels'], dtype=np.float32)
-    print(pixels.shape)
+
     if pixels.shape != (784,):
         return jsonify(error="Expected 784 pixel values"), 400
-    
-    pixels = pixels.reshape(1, -1)  # Reshape to (1, 784)1
 
-    prediction = model.predict(pixels)
-    print(f"Prediction: {prediction}")
+    prediction = model.predict(pixels.reshape(1, -1))
     return jsonify({"prediction": int(prediction[0])})
-    
 
- 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=False)

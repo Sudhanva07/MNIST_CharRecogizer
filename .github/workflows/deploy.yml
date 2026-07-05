@@ -32,3 +32,24 @@ jobs:
 
             -   name: Image digest
                 run: echo ${{ steps.build-and-publish.outputs.digest }}
+
+    deploy:
+        runs-on: ubuntu-latest
+        needs: build-and-publish
+
+        steps:
+            -   name: SSH into EC2 and redeploy
+                uses: appleboy/ssh-action@v1.0.3
+                with:
+                    host:     ${{ secrets.EC2_HOST }}
+                    username: ubuntu
+                    key:      ${{ secrets.EC2_SSH_KEY }}
+                    script: |
+                        docker pull ${{ secrets.DOCKER_USERNAME }}/mnist-app:latest
+                        docker stop mnist-app || true
+                        docker rm   mnist-app || true
+                        docker run -d \
+                            --name mnist-app \
+                            --restart unless-stopped \
+                            -p 80:5000 \
+                            ${{ secrets.DOCKER_USERNAME }}/mnist-app:latest
