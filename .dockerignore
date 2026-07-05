@@ -1,0 +1,50 @@
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+venv/
+env/
+.venv/
+*.cfg
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# CI/CD
+.github/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Large local artifacts you don't want baked in unintentionally
+*.log
+data/
+notebooks/
+*.ipynb
+
+inputs/
